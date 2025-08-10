@@ -1,0 +1,10 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/abstractionjackson/plan/schema.json",
+    "title": "Plan",
+    "description": "A Day Planner",
+    "type": "object",
+    "$defs": {
+
+    }
+}
