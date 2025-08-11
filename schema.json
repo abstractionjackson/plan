@@ -4,7 +4,67 @@
     "title": "Plan",
     "description": "A Day Planner",
     "type": "object",
+    "properties": {
+        "year": {
+            "description": "The calendar year",
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 9999
+        },
+        "quarters": {
+            "description": "Instances of quarterly planning",
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    { "type": "null" },
+                    { "$ref": "#/$defs/quarter" }
+                ]
+            },
+            "maxItems": 4
+        }
+    },
+    "required": ["year", "quarters"],
     "$defs": {
-
+        "quarter": {
+            "description": "A plan that spans one of the four quarters",
+            "type": "object",
+            "properties": {
+               "todos" : {
+                    "description": "Quarterly Goals",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/todo"},
+                    "uniqueItems": true
+               }
+            },
+            "required": ["todos"]
+        },
+        "todo": {
+            "description": "A stateful task",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "A unique identifier",
+                    "type": "integer"
+                },
+                "state": {
+                    "description": "The state of a todo...",
+                    "type": "string",
+                    "enum": [
+                        "TODO",
+                        "DONE"
+                    ]
+                },
+                "title": {
+                    "description": "A concise identifier of the specific task",
+                    "type": "string"
+                },
+                "subtasks": {
+                    "description": "Subtasks of this todo",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/todo" }
+                }
+            },
+            "required": ["id", "state", "title"]
+        }
     }
 }
