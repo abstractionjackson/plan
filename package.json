@@ -1,0 +1,23 @@
+{
+  "name": "plan-cli",
+  "version": "0.1.0",
+  "description": "CLI for managing Plan JSON documents validated against schema.json",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "plan": "bin/plan.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "start": "node bin/plan.js --help",
+    "lint": "echo 'no lint configured'",
+    "test": "node bin/plan.js --version"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^2.1.1",
+    "yargs": "^17.7.2"
+  }
+}
