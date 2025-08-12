@@ -35,6 +35,20 @@ Commands:
 - quarter todo list [todo|done] List quarterly todos (optionally filter by state)
 - quarter todo complete Mark a quarterly todo as DONE (interactive)
 - quarter todo delete Delete a quarterly todo (interactive)
+- week Create a plan entry for the current week if not exists
+  -n, --number Week number (1–52) to create (defaults to current week)
+- week todo Add a todo item to the current week (prompts for a title)
+- week todo list [todo|done] List weekly todos (optionally filter by state)
+- week todo complete Mark a weekly todo as DONE (interactive)
+- week todo delete Delete a weekly todo (interactive)
+- day Create a plan entry for the current day if not exists
+  -n, --number Day of year (1–365) to create (defaults to today)
+- day todo Add a todo item to the current day (prompts for a title)
+- day todo list [todo|done] List daily todos (optionally filter by state)
+- day todo complete Mark a daily todo as DONE (interactive)
+- day todo delete Delete a daily todo (interactive)
+- todo create Add a todo for today (daily scope; prompts if no piped title)
+- todo list [todo|done] List all todos across quarters, weeks, and days (optionally filter)
 
 Options:
 
