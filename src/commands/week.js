@@ -6,15 +6,16 @@ const {
   generateNextId,
   validatePlan,
 } = require("./utils");
+const { printTodo, interactiveEditTodo } = require("./editUtils");
 
 function getCurrentWeekNumberBounded() {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 1);
   const msInDay = 24 * 60 * 60 * 1000;
   const dayOfYear = Math.floor((now - start) / msInDay) + 1;
-  let w = Math.floor((dayOfYear - 1) / 7) + 1; // 1..53
+  let w = Math.floor((dayOfYear - 1) / 7) + 1; // approximate week
   if (w < 1) w = 1;
-  if (w > 52) w = 52;
+  if (w > 52) w = 52; // cap
   return w;
 }
 
@@ -57,7 +58,7 @@ async function ensureWeek(weekOverride) {
 module.exports = function (yargs) {
   return yargs.command(
     "week [task] [action] [filter]",
-    "Week operations: create/add/list/complete/delete weekly todos (list accepts optional filter: todo|done)",
+    "Week operations: create/add/list/show/edit/complete/delete weekly todos (list accepts optional filter: todo|done)",
     y =>
       y
         .positional("task", {
@@ -67,9 +68,9 @@ module.exports = function (yargs) {
           default: "create",
         })
         .positional("action", {
-          describe: "Todo action (list, show, complete, delete)",
+          describe: "Todo action (list, show, edit, complete, delete)",
           type: "string",
-          choices: ["list", "show", "complete", "delete"],
+          choices: ["list", "show", "edit", "complete", "delete"],
         })
         .positional("filter", {
           describe: "Optional filter for list (todo|done)",
@@ -91,7 +92,7 @@ module.exports = function (yargs) {
           type: "string",
         })
         .option("id", {
-          describe: "Todo id for show action",
+          describe: "Todo id for show/edit action",
           type: "number",
         }),
     async args => {
@@ -110,22 +111,37 @@ module.exports = function (yargs) {
         }
         const todo = todos.find(t => t && t.id === args.id);
         if (!todo) {
-          console.error(`Todo id ${args.id} not found in week ${week} ${year}.`);
+          console.error(
+            `Todo id ${args.id} not found in week ${week} ${year}.`
+          );
           process.exit(1);
         }
-        console.log(`Week ${week} ${year} todo #${todo.id}`);
-        console.log(`Title: ${todo.title}`);
-        console.log(`State: ${todo.state}`);
-        if (todo.createdAt) console.log(`Created: ${todo.createdAt}`);
-        if (todo.scheduled) console.log(`Scheduled: ${todo.scheduled}`);
-        if (todo.deadline) console.log(`Deadline: ${todo.deadline}`);
-        if (Array.isArray(todo.subtasks) && todo.subtasks.length) {
-          console.log("Subtasks:");
-          todo.subtasks.forEach(st => {
-            if (!st) return;
-            const mark = st.state === "DONE" ? "✔" : " ";
-            console.log(`  [${st.id}] ${mark} ${st.title}`);
-          });
+        printTodo("Week", week, year, todo);
+        return;
+      }
+      if (args.action === "edit") {
+        const { plan, week, year, idx, id } = await ensureWeek(args.number);
+        const todos = Array.isArray(plan.weeks[idx].todos)
+          ? plan.weeks[idx].todos
+          : [];
+        if (!Number.isInteger(args.id)) {
+          console.error("--id is required and must be a number for edit.");
+          process.exit(1);
+        }
+        const todo = todos.find(t => t && t.id === args.id);
+        if (!todo) {
+          console.error(
+            `Todo id ${args.id} not found in week ${week} ${year}.`
+          );
+          process.exit(1);
+        }
+        printTodo("Week", week, year, todo);
+        try {
+          await interactiveEditTodo({ plan, todo, planId: id });
+          console.log("Updated todo.");
+        } catch (e) {
+          console.error(e.message);
+          process.exit(1);
         }
         return;
       }

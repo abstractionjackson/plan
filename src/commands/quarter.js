@@ -36,7 +36,7 @@ async function ensureQuarter(quarterOverride) {
 module.exports = function (yargs) {
   return yargs.command(
     "quarter [task] [action] [filter]",
-    "Quarter operations: create/add/list/complete/delete todos (list accepts optional filter: todo|done)",
+    "Quarter operations: create/add/list/show/edit/complete/delete todos (list accepts optional filter: todo|done)",
     y =>
       y
         .positional("task", {
@@ -46,9 +46,9 @@ module.exports = function (yargs) {
           default: "create",
         })
         .positional("action", {
-          describe: "Todo action (list, show, complete, delete)",
+          describe: "Todo action (list, show, edit, complete, delete)",
           type: "string",
-          choices: ["list", "show", "complete", "delete"],
+          choices: ["list", "show", "edit", "complete", "delete"],
         })
         .positional("filter", {
           describe: "Optional filter for list (todo|done)",
@@ -71,7 +71,7 @@ module.exports = function (yargs) {
           type: "string",
         })
         .option("id", {
-          describe: "Todo id for show action",
+          describe: "Todo id for show/edit action",
           type: "number",
         }),
     async args => {
@@ -80,7 +80,9 @@ module.exports = function (yargs) {
         return;
       }
       if (args.action === "show") {
-        const { plan, quarter, year, idx } = await ensureQuarter(args.number);
+        const { plan, quarter, year, idx, id } = await ensureQuarter(
+          args.number
+        );
         const todos = Array.isArray(plan.quarters[idx].todos)
           ? plan.quarters[idx].todos
           : [];
@@ -93,19 +95,34 @@ module.exports = function (yargs) {
           console.error(`Todo id ${args.id} not found in Q${quarter} ${year}.`);
           process.exit(1);
         }
-        console.log(`Q${quarter} ${year} todo #${todo.id}`);
-        console.log(`Title: ${todo.title}`);
-        console.log(`State: ${todo.state}`);
-        if (todo.createdAt) console.log(`Created: ${todo.createdAt}`);
-        if (todo.scheduled) console.log(`Scheduled: ${todo.scheduled}`);
-        if (todo.deadline) console.log(`Deadline: ${todo.deadline}`);
-        if (Array.isArray(todo.subtasks) && todo.subtasks.length) {
-          console.log("Subtasks:");
-          todo.subtasks.forEach(st => {
-            if (!st) return;
-            const mark = st.state === "DONE" ? "✔" : " ";
-            console.log(`  [${st.id}] ${mark} ${st.title}`);
-          });
+        const { printTodo } = require("./editUtils");
+        printTodo("Quarter", quarter, year, todo);
+        return;
+      }
+      if (args.action === "edit") {
+        const { plan, quarter, year, idx, id } = await ensureQuarter(
+          args.number
+        );
+        const todos = Array.isArray(plan.quarters[idx].todos)
+          ? plan.quarters[idx].todos
+          : [];
+        if (!Number.isInteger(args.id)) {
+          console.error("--id is required and must be a number for edit.");
+          process.exit(1);
+        }
+        const todo = todos.find(t => t && t.id === args.id);
+        if (!todo) {
+          console.error(`Todo id ${args.id} not found in Q${quarter} ${year}.`);
+          process.exit(1);
+        }
+        const { interactiveEditTodo, printTodo } = require("./editUtils");
+        printTodo("Quarter", quarter, year, todo);
+        try {
+          await interactiveEditTodo({ plan, todo, planId: id });
+          console.log("Updated todo.");
+        } catch (e) {
+          console.error(e.message);
+          process.exit(1);
         }
         return;
       }
