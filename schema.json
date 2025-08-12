@@ -21,6 +21,28 @@
                 ]
             },
             "maxItems": 4
+        },
+        "weeks": {
+            "description": "Instances of weekly planning",
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    { "type": "null" },
+                    { "$ref": "#/$defs/week" }
+                ]
+            },
+            "maxItems": 52
+        },
+        "days": {
+            "description": "Instances of daily planning",
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    { "type": "null" },
+                    { "$ref": "#/$defs/day" }
+                ]
+            },
+            "maxItems": 365
         }
     },
     "required": ["year", "quarters"],
@@ -38,6 +60,32 @@
             },
             "required": ["todos"]
         },
+        "week" : {
+            "description": "A plan that spans one week",
+            "type": "object",
+            "properties": {
+                "todos" : {
+                    "description": "Weekly Goals",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/todo"},
+                    "uniqueItems": true
+                }
+            },
+            "required": ["todos"]
+        },
+        "day": {
+            "description": "A plan that spans one day",
+            "type": "object",
+            "properties": {
+                "todos" : {
+                    "description": "Daily Goals",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/todo"},
+                    "uniqueItems": true
+                }
+            },
+            "required": ["todos"]
+        },
         "todo": {
             "description": "A stateful task",
             "type": "object",
@@ -45,6 +93,11 @@
                 "id": {
                     "description": "A unique identifier",
                     "type": "integer"
+                },
+                "createdAt": {
+                    "description": "The creation timestamp of the todo",
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "state": {
                     "description": "The state of a todo...",
@@ -62,9 +115,19 @@
                     "description": "Subtasks of this todo",
                     "type": "array",
                     "items": { "$ref": "#/$defs/todo" }
+                },
+                "deadline": {
+                    "description": "The deadline for completing the todo",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "scheduled": {
+                    "description": "The scheduled date and time for the todo",
+                    "type": "string",
+                    "format": "date-time"
                 }
             },
-            "required": ["id", "state", "title"]
+            "required": ["id", "state", "title", "createdAt"]
         }
     }
 }
